@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App de Notas - PWA</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <h1>App de Notas</h1>
+    <form id="form">
+        <input type="text" id="titulo" placeholder="Título de la nota" required>
+        <textarea id="contenido" placeholder="Contenido de la nota" required></textarea>
+        <button type="submit">Guardar Nota</button>
+    </form>
+
+    <h2>Ver Nota</h2>
+    <input type="text" id="buscarTitulo" placeholder="Título de la nota">
+    <button onclick="buscarNota()">Buscar</button>
+    <p id="resultado"></p>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registrado'))
+                .catch(err => console.error('Error al registrar Service Worker', err));
+        }
+
+        const form = document.getElementById('form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const titulo = document.getElementById('titulo').value;
+            const contenido = document.getElementById('contenido').value;
+
+            const response = await fetch('/nota', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ titulo, contenido })
+            });
+
+            const data = await response.json();
+            alert(data.mensaje);
+        });
+
+        async function buscarNota() {
+            const titulo = document.getElementById('buscarTitulo').value;
+            const response = await fetch(`/nota/${titulo}`);
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById('resultado').textContent = data.error;
+            } else {
+                document.getElementById('resultado').textContent = `Título: ${data.titulo}, Contenido: ${data.contenido}`;
+            }
+        }
+    </script>
+</body>
+</html>
